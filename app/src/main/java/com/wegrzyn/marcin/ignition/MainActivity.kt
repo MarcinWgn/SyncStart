@@ -5,6 +5,7 @@ import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -43,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -109,11 +111,38 @@ sealed class DestinationScreen(val route: String) {
 }
 
 @Composable
-fun MainScr(nc: NavController, onClick: () -> Unit) {
+fun MainScr(nc: NavController, onClick: () -> Unit, model: MainViewModel = hiltViewModel()) {
+
+    val txt by model.repo.txt.collectAsState()
+    val active by model.repo.active.collectAsState()
+    val state by model.btState.collectAsState()
+
+    val ctx = LocalContext.current
+
     Scaffold(topBar = { MainTopBar(nc = nc, onClick = onClick) }) {
         Column(modifier = Modifier.padding(it)) {
             BluetoothPermission()
-            Text(text = "main screen")
+            Button(onClick = {
+                if (state == State.CONNECTED) {
+                    model.repo.startStop()
+                } else {
+                    Toast.makeText(ctx, "Brak połączenia BT !!!", Toast.LENGTH_SHORT).show()
+                }
+
+            }, modifier = Modifier.padding(8.dp)) {
+                Text(
+                    text = if (active) {
+                        "stop"
+                    } else {
+                        "start"
+                    }
+                )
+            }
+            Text(
+                text = txt, modifier = Modifier
+                    .padding(8.dp)
+                    .verticalScroll(state = rememberScrollState())
+            )
         }
     }
 
