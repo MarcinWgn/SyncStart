@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -114,30 +115,14 @@ sealed class DestinationScreen(val route: String) {
 fun MainScr(nc: NavController, onClick: () -> Unit, model: MainViewModel = hiltViewModel()) {
 
     val txt by model.repo.txt.collectAsState()
-    val active by model.repo.active.collectAsState()
-    val state by model.btState.collectAsState()
 
-    val ctx = LocalContext.current
 
     Scaffold(topBar = { MainTopBar(nc = nc, onClick = onClick) }) {
-        Column(modifier = Modifier.padding(it)) {
+        Column(modifier = Modifier
+            .padding(it)
+            .padding(8.dp)) {
             BluetoothPermission()
-            Button(onClick = {
-                if (state == State.CONNECTED) {
-                    model.repo.startStop()
-                } else {
-                    Toast.makeText(ctx, "Brak połączenia BT !!!", Toast.LENGTH_SHORT).show()
-                }
-
-            }, modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = if (active) {
-                        "stop"
-                    } else {
-                        "start"
-                    }
-                )
-            }
+            RadioSelected()
             Text(
                 text = txt, modifier = Modifier
                     .padding(8.dp)
@@ -145,7 +130,52 @@ fun MainScr(nc: NavController, onClick: () -> Unit, model: MainViewModel = hiltV
             )
         }
     }
+}
 
+@Composable
+fun RadioSelected(model: MainViewModel = hiltViewModel()) {
+
+    val active by model.repo.active.collectAsState()
+    val state by model.btState.collectAsState()
+    val ctx = LocalContext.current
+
+    val rbOptions = List(3) { it }
+    var selected by remember {
+        mutableStateOf(rbOptions[0])
+    }
+    Row {
+        rbOptions.forEach {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    RadioButton(selected = it == selected, onClick = {
+                        selected = it
+                        model.repo.stop()
+                    })
+                    Text(text = it.toString())
+                }
+            }
+        }
+        Button(onClick = {
+            if (state == State.CONNECTED) {
+                model.repo.startStop(selected = selected)
+            } else {
+                Toast.makeText(ctx, "Brak połączenia BT!!!", Toast.LENGTH_SHORT).show()
+            }
+
+        }, modifier = Modifier.padding(8.dp)) {
+            Column() {
+                Text(text = "ign", fontSize = 16.sp)
+                Text(
+                    fontSize = 16.sp,
+                    text = if (active) {
+                        "stop"
+                    } else {
+                        "start"
+                    }
+                )
+            }
+        }
+    }
 }
 
 @Composable
