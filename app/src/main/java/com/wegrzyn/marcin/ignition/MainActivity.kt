@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -24,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -46,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -91,7 +94,6 @@ class MainActivity : ComponentActivity() {
             btEnable.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
         }
     }
-
 }
 
 @Composable
@@ -112,23 +114,28 @@ sealed class DestinationScreen(val route: String) {
 }
 
 @Composable
-fun MainScr(nc: NavController, onClick: () -> Unit, model: MainViewModel = hiltViewModel()) {
-
-    val txt by model.repo.txt.collectAsState()
-
+fun MainScr(nc: NavController, onClick: () -> Unit) {
 
     Scaffold(topBar = { MainTopBar(nc = nc, onClick = onClick) }) {
-        Column(modifier = Modifier
-            .padding(it)
-            .padding(8.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(it)
+                .padding(8.dp)
+        ) {
+            Separate()
             BluetoothPermission()
             RadioSelected()
-            Text(
-                text = txt, modifier = Modifier
-                    .padding(8.dp)
-                    .verticalScroll(state = rememberScrollState())
-            )
         }
+    }
+}
+
+@Composable
+fun Separate() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(20.dp)
+    ) {
     }
 }
 
@@ -145,32 +152,34 @@ fun RadioSelected(model: MainViewModel = hiltViewModel()) {
     }
     Row {
         rbOptions.forEach {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    RadioButton(selected = it == selected, onClick = {
-                        selected = it
-                        model.repo.stop()
-                    })
-                    Text(text = it.toString())
-                }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                RadioButton(selected = it == selected, onClick = {
+                    selected = it
+                    model.repo.stop()
+                })
+                Text(text = it.toString())
             }
         }
-        Button(onClick = {
-            if (state == State.CONNECTED) {
-                model.repo.startStop(selected = selected)
-            } else {
-                Toast.makeText(ctx, "Brak połączenia BT!!!", Toast.LENGTH_SHORT).show()
-            }
+        Button(
+            modifier = Modifier.padding(start = 30.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
+            onClick = {
+                if (state == State.CONNECTED) {
+                    model.repo.startStop(selected = selected)
+                } else {
+                    Toast.makeText(ctx, ctx.getString(R.string.no_bt_con), Toast.LENGTH_SHORT)
+                        .show()
+                }
 
-        }, modifier = Modifier.padding(8.dp)) {
-            Column() {
-                Text(text = "ign", fontSize = 16.sp)
+            }) {
+            Column(
+                modifier = Modifier.padding(8.dp)
+            ) {
                 Text(
-                    fontSize = 16.sp,
+                    fontSize = 24.sp,
                     text = if (active) {
-                        "stop"
+                        stringResource(R.string.stop)
                     } else {
-                        "start"
+                        stringResource(R.string.start)
                     }
                 )
             }
@@ -187,7 +196,7 @@ fun SettingsScr(nc: NavHostController, model: MainViewModel = hiltViewModel()) {
 
         Column(modifier = Modifier.padding(it)) {
             Text(
-                text = "Urządzenie",
+                text = stringResource(R.string.device),
                 modifier = Modifier.padding(start = 50.dp, top = 8.dp, bottom = 16.dp)
             )
             DevDialog(
@@ -195,7 +204,7 @@ fun SettingsScr(nc: NavHostController, model: MainViewModel = hiltViewModel()) {
                 close = { openDevDialog = false },
             )
             Text(
-                text = "wybrane urzadzenie",
+                text = stringResource(R.string.selected_device),
                 Modifier
                     .fillMaxWidth()
                     .clickable {
@@ -218,12 +227,12 @@ fun DevDialog(openDialog: Boolean, close: () -> Unit) {
             onDismissRequest = close,
             confirmButton = {
                 Button(onClick = close) {
-                    Text(text = "confirm")
+                    Text(text = stringResource(R.string.confirm))
                 }
             },
             properties = DialogProperties(),
             text = { DevRadioBtnList() },
-            title = { Text(text = "selected device") },
+            title = { Text(text = stringResource(id = R.string.selected_device)) },
         )
     }
 }
@@ -239,6 +248,9 @@ fun DevRadioBtnList(model: MainViewModel = hiltViewModel()) {
     }
     model.getDevice()?.let {
         selectedDev = it
+    }
+    if (devs?.size == 0) {
+        Text(text = stringResource(R.string.turn_on_bluetooth_desc))
     }
     Column(
         modifier = Modifier
@@ -291,19 +303,25 @@ fun MainTopBar(nc: NavController, model: MainViewModel = hiltViewModel(), onClic
         State.NONE -> painterResource(id = R.drawable.bluetooth_disabled_24)
 
     }
-    TopAppBar(title = { Text(text = "Ignition") }, actions = {
+    TopAppBar(navigationIcon = {
+        Icon(
+            modifier = Modifier.padding(8.dp),
+            imageVector = Icons.Default.Build,
+            contentDescription = null
+        )
+    }, title = { Text(text = stringResource(id = R.string.app_name)) }, actions = {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = state.name)
             IconButton(onClick = onClick) {
-                Icon(painter = btIcon, contentDescription = "connect state")
+                Icon(painter = btIcon, contentDescription = null)
             }
             IconButton(onClick = {
                 nc.navigate(DestinationScreen.SettingsScreen.route) {
                     launchSingleTop = true
                 }
             }) {
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "menu")
+                Icon(imageVector = Icons.Default.Menu, contentDescription = null)
             }
         }
 
@@ -319,7 +337,7 @@ fun SettingsTopBar(nc: NavHostController) {
                 launchSingleTop = true
             }
         }) {
-            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "back")
+            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
         }
-    }, title = { Text(text = "Settings") })
+    }, title = { Text(text = stringResource(R.string.settings)) })
 }

@@ -20,9 +20,6 @@ class Repository @Inject constructor(
 ) {
     val btState = bluetooth.state
 
-    private val _txt = MutableStateFlow("")
-    val txt = _txt.asStateFlow()
-
     val btGranted = MutableStateFlow(true)
 
     var active = MutableStateFlow(false)
@@ -52,7 +49,7 @@ class Repository @Inject constructor(
         configJob = ioScope.launch {
             active.value = true
 
-            bluetooth.write("ATD")
+            bluetooth.write("ATZ")
             delay(800)
             bluetooth.write("AT SP6")
             delay(300)
@@ -80,12 +77,10 @@ class Repository @Inject constructor(
 
 
     init {
-        ioScope.launch {
-            bluetooth.data.collect {
-                _txt.value += it + "\n"
-            }
-        }.start()
+        stopSendingDetect()
+    }
 
+    private fun stopSendingDetect() {
         ioScope.launch {
             btState.collect {
                 if (active.value && it == State.NONE) {

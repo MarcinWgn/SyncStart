@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sync Start</string>
+    <string name="settings">Ustawienia</string>
+    <string name="device">Urządzenie</string>
+    <string name="selected_device">Wybrane urządzenie</string>
+    <string name="confirm">Potwierdź</string>
+    <string name="turn_on_bluetooth_desc">Włącz bluetooth aby wybrać urządzenie</string>
+    <string name="bt_perm_is_not_granted">Zgody na używanie bluetooth nie zostały przysznane</string>
+    <string name="perm_is_necessary">Zgody na używanie blutooth są wybagane do prawidłowego działania aplikacji</string>
+    <string name="no_bt_con">Brak połączenia bluetooth !!!</string>
+</resources>
