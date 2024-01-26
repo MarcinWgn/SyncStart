@@ -13,11 +13,13 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -144,37 +146,47 @@ fun RadioSelected(model: MainViewModel = hiltViewModel()) {
 
     val active by model.repo.active.collectAsState()
     val state by model.btState.collectAsState()
+    val revTxt by model.rev.collectAsState()
     val ctx = LocalContext.current
 
     val rbOptions = List(3) { it }
     var selected by remember {
         mutableStateOf(rbOptions[0])
     }
-    Row {
-        rbOptions.forEach {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                RadioButton(selected = it == selected, onClick = {
-                    selected = it
-                    model.repo.stop()
-                })
-                Text(text = it.toString())
-            }
-        }
-        Button(
-            modifier = Modifier.padding(start = 30.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
-            onClick = {
-                if (state == State.CONNECTED) {
-                    model.repo.startStop(selected = selected)
-                } else {
-                    Toast.makeText(ctx, ctx.getString(R.string.no_bt_con), Toast.LENGTH_SHORT)
-                        .show()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp), horizontalAlignment = Alignment.End
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            rbOptions.forEach {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    RadioButton(selected = it == selected, onClick = {
+                        selected = it
+                        model.repo.stop()
+                    })
+                    Text(text = it.toString())
                 }
+            }
+            Button(
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 16.dp)
+                    .width(150.dp),
+                onClick = {
+                    if (state == State.CONNECTED) {
+                        model.repo.startStop(selected = selected)
+                    } else {
+                        Toast.makeText(ctx, ctx.getString(R.string.no_bt_con), Toast.LENGTH_SHORT)
+                            .show()
+                    }
 
-            }) {
-            Column(
-                modifier = Modifier.padding(8.dp)
-            ) {
+                }) {
                 Text(
+                    modifier = Modifier.padding(8.dp),
                     fontSize = 24.sp,
                     text = if (active) {
                         stringResource(R.string.stop)
@@ -184,7 +196,34 @@ fun RadioSelected(model: MainViewModel = hiltViewModel()) {
                 )
             }
         }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                fontSize = 24.sp,
+                text = "reverse",
+                modifier = Modifier.padding(start = 16.dp, end = 8.dp, bottom = 8.dp, top = 8.dp)
+            )
+            Button(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .width(150.dp),
+                onClick = { model.repo.setReverse() }) {
+                Text(
+                    modifier = Modifier.padding(8.dp),
+                    fontSize = 24.sp, text = if (revTxt == "00") {
+                        "off"
+                    } else {
+                        "on"
+                    }
+                )
+            }
+        }
+
     }
+
 }
 
 @Composable

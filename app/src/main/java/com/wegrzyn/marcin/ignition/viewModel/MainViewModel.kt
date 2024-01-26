@@ -17,6 +17,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
 
     val btState: StateFlow<State> = repo.btState
+    val rev = repo.rev.asStateFlow()
 
     val btGranted = repo.btGranted.asStateFlow()
     fun setBtGranted(granted: Boolean) {

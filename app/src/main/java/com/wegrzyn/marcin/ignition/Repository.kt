@@ -22,10 +22,13 @@ class Repository @Inject constructor(
 
     val btGranted = MutableStateFlow(true)
 
+    val rev = MutableStateFlow("00")
+
     var active = MutableStateFlow(false)
 
+
     private val adrTab = listOf(
-        Pair("3b3", "41 00 00 00 4c 00 00 00"),
+        Pair("3b3", "40 80 00 12 71 03 81 00"),
         Pair("3b3", "00 00 00 00 07 00 e0 00"),
         Pair("048", "00 00 00 00 07 00 e0 00")
     )
@@ -38,10 +41,20 @@ class Repository @Inject constructor(
             stop()
         } else {
             start()
+            rev.value="00"
+        }
+    }
+
+    fun setReverse(){
+        if (rev.value=="00"){
+            rev.value ="01"
+        }else{
+            rev.value = "00"
         }
     }
 
     fun stop() {
+        rev.value="00"
         configJob?.cancel()
     }
 
@@ -59,14 +72,21 @@ class Repository @Inject constructor(
             delay(300)
             bluetooth.write("AT AL")
             delay(300)
-            bluetooth.write("AT SH" + adrTab[frame].first)
-            delay(300)
 
             Log.d(TAG, "frame first:${adrTab[frame].first}")
 
             while (active.value) {
+
+                bluetooth.write("AT SH" + adrTab[frame].first)
+                delay(300)
+
                 bluetooth.write(adrTab[frame].second)
                 Log.d(TAG, "frame second:${adrTab[frame].second}")
+                delay(300)
+
+                bluetooth.write("AT SH 109")
+                delay(300)
+                bluetooth.write("00 03 F1 00 00 00 ${rev.value} 00")
                 delay(300)
             }
         }
