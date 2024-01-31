@@ -6,6 +6,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = file("D:\\key_store\\keystore.jks")
+            storePassword = "12#Cinek"
+            keyAlias = "key0"
+            keyPassword = "2#Cinek"
+        }
+    }
     namespace = "com.wegrzyn.marcin.ignition"
     compileSdk = 34
 
@@ -29,6 +37,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
